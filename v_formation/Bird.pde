@@ -11,6 +11,8 @@ class Bird {
   float mass = 1.0;
   float randomTurn;
   float turnDecay = 0.95;
+  float thrustDecay = 0.95;
+  int thrustTimer;
   boolean thrustOn;
 
   Bird(int id, float x, float y, color sColor) {
@@ -28,6 +30,7 @@ class Bird {
     birdId = id;
     friction = 0.995; 
     randomTurn = 0;
+    thrustTimer = 0;
   }
   
   void update() {
@@ -108,6 +111,21 @@ class Bird {
       }
     }
     rotChange = randomTurn;
+  }
+
+  void updateAutoThrust() {
+    if (thrustOn) {
+      thrustTimer--;
+      if (thrustTimer == 0) {
+        cancelThrust();
+      }
+    } else {
+      float shouldStartThrust = (float) Math.random();
+      if (shouldStartThrust > 0.99) {
+        thrustTimer = (int) (Math.random() * 500);
+        applyThrust();  
+      }
+    }
   }
 
   void render() {

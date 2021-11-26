@@ -29,7 +29,7 @@ void setup() {
 void draw() {
   background(50);
   
-  leadingBird.applyThrust();
+  leadingBird.updateAutoThrust();
   leadingBird.generateRandomTurn();
   leadingBird.update();
   leadingBird.render();
