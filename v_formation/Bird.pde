@@ -101,13 +101,13 @@ class Bird {
 
   void generateRandomTurn() {
     if (!isTurning()) {
-      if (randomTurn == 0) {
-        randomTurn = (float) Math.random() * 2 - 1;
+      if (randomTurn == 0 && !thrustOn) {
+        randomTurn = (float) Math.random() * 3 - 1.5;
       } 
     } else {
       randomTurn = rotChange * turnDecay;
-      if (Math.abs(randomTurn) < 0.01) {
-        randomTurn = 0;
+      if (Math.abs(randomTurn) < 0.01 || !thrustOn) {
+        randomTurn = 0; // cancel turning if tapered off, or not thrusting
       }
     }
     rotChange = randomTurn;
@@ -122,7 +122,7 @@ class Bird {
     } else {
       float shouldStartThrust = (float) Math.random();
       if (shouldStartThrust > 0.99) {
-        thrustTimer = (int) (Math.random() * 500);
+        thrustTimer = (int) (Math.random() * 250);
         applyThrust();  
       }
     }
