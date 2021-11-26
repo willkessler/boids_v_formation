@@ -9,7 +9,8 @@ class Bird {
   float rot, rotChange, rotIncrement;
   float accelFactor;
   float mass = 1.0;
-  double randomTurn;
+  float randomTurn;
+  float turnDecay = 0.95;
   boolean thrustOn;
 
   Bird(int id, float x, float y, color sColor) {
@@ -26,6 +27,7 @@ class Bird {
     accelFactor = 0.009;
     birdId = id;
     friction = 0.995; 
+    randomTurn = 0;
   }
   
   void update() {
@@ -91,13 +93,21 @@ class Bird {
   }
 
   boolean isTurning() {
-    return rotChange > 0;
+    return (Math.abs(rotChange) > 0);
   }
 
   void generateRandomTurn() {
     if (!isTurning()) {
-      randomTurn = Math.random() + 1;
+      if (randomTurn == 0) {
+        randomTurn = (float) Math.random() * 2 - 1;
+      } 
+    } else {
+      randomTurn = rotChange * turnDecay;
+      if (Math.abs(randomTurn) < 0.01) {
+        randomTurn = 0;
+      }
     }
+    rotChange = randomTurn;
   }
 
   void render() {

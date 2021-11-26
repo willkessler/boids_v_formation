@@ -5,8 +5,8 @@
  * 
  **/
 
-int windowSize = 800;
-int partWindow = windowSize /8;
+int windowSize;
+int partWindow;
 float birdWidth = 15;
 float birdHeight = birdWidth * 1.5;
 float halfbirdHeight = birdHeight / 2;
@@ -14,16 +14,26 @@ float halfbirdWidth = birdWidth / 2;
 
 int numBirds = 1;
 Bird bird;
+Bird leadingBird;
 
 void setup() {
-  size(1000, 600);
+  size(1000, 1000);
+  windowSize = 1000; // make sure match to the size() call on previous line
+  partWindow = windowSize /8;
 
-  bird = new Bird(0, partWindow, partWindow, color(0,255,0));
+  leadingBird = new Bird(0, partWindow, partWindow, color(0,0,255));
+  bird = new Bird(1, partWindow, partWindow, color(0,255,0));
 
 }
 
 void draw() {
   background(50);
+  
+  leadingBird.applyThrust();
+  leadingBird.generateRandomTurn();
+  leadingBird.update();
+  leadingBird.render();
+
   bird.update();
   bird.render();
 }
