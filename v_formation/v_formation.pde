@@ -34,6 +34,7 @@ void draw() {
   leadingBird.update();
   leadingBird.render();
 
+  bird.pointAtLeadingBird(leadingBird);
   bird.update();
   bird.render();
 }
@@ -81,4 +82,11 @@ void wrapAroundEdges(PVector pos) {
   if (pos.y > windowSize) {
     pos.y = 0;
   }
+}
+
+float angleBetweenVectors(PVector v1, PVector v2) {
+  float dp = v1.dot(v2);
+  float denom = v1.mag() * v2.mag();
+  float angle = acos(dp/denom);
+  return degrees(angle);
 }

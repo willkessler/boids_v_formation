@@ -13,6 +13,9 @@ class Bird {
   float turnDecay = 0.95;
   float thrustDecay = 0.95;
   int thrustTimer;
+  float leadingBirdRange = windowSize; // can track you over entire screen right now
+  float leadingBirdAngleTolerance = 360;
+  float birdSmartFactor = 0.045;
   boolean thrustOn;
 
   Bird(int id, float x, float y, color sColor) {
@@ -97,6 +100,42 @@ class Bird {
 
   boolean isTurning() {
     return (Math.abs(rotChange) > 0);
+  }
+
+  // calculate if the leading bird is near enough to "see" and in front of this bird. Return a zero vector if not.
+  // otherwise return a vector indicating a velocity change to track the leading bird.
+  PVector calculateLeadingBirdDirection(Bird leadingBird) {
+    PVector adjustment = new PVector(0,0);
+    PVector leadingBirdToThisBird = new PVector(0,0);
+    leadingBirdToThisBird.set(leadingBird.pos);
+    leadingBirdToThisBird.sub(pos);
+    float distanceToLeadingBird = leadingBirdToThisBird.mag();
+    if (distanceToLeadingBird > leadingBirdRange) { // have to be close to it, first off
+      return adjustment;
+    }
+    leadingBirdToThisBird.normalize();
+    float angleToLeadingBird = angleBetweenVectors(vel, leadingBirdToThisBird);
+    
+    println("In range of leadingBird:", distanceToLeadingBird, "angle:", angleToLeadingBird);
+    if (angleToLeadingBird <= leadingBirdAngleTolerance) { // limited view in front of the bird
+       PVector crossProduct = vel.cross(leadingBirdToThisBird);
+       // calculate turn based on how large the angle is
+       float adjustmentAngle = angleToLeadingBird  * crossProduct.z;
+       float adjustmentAngleRadians = radians(adjustmentAngle);
+       float ca = cos(adjustmentAngleRadians);
+       float sa = sin(adjustmentAngleRadians);
+       adjustment.set(ca * vel.x - sa * vel.y,
+                      sa * vel.x + ca * vel.y);  
+       adjustment.normalize();
+       adjustment.mult(birdSmartFactor);
+       // println("  Adjustment vector:", adjustment);
+    }
+    return adjustment;
+  }
+
+  void pointAtLeadingBird(Bird leadingBird) {
+    PVector leadingBirdDirection = calculateLeadingBirdDirection(leadingBird);
+    println("Leading bird direction:[" + leadingBirdDirection.x + "," + leadingBirdDirection.y + "]");
   }
 
   void generateRandomTurn() {
