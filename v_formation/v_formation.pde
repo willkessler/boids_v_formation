@@ -34,7 +34,8 @@ void draw() {
   leadingBird.update();
   leadingBird.render();
 
-  bird.pointAtLeadingBird(leadingBird);
+  //bird.pointAtLeadingBird(leadingBird);
+  bird.pointSameWayAsLeadingBird(leadingBird);
   bird.update();
   bird.render();
 }
@@ -52,6 +53,18 @@ void keyPressed() {
     break;
    case 'd':
     bird.startTurning(1);
+    break;
+   case 'i':
+    leadingBird.moveLinear(0,-1);
+    break;
+   case 'j':
+    leadingBird.moveLinear(-1,0);
+    break;
+   case 'k':
+    leadingBird.moveLinear(0,1);
+    break;
+   case 'l':
+    leadingBird.moveLinear(1,0);
     break;
   }   
 }
