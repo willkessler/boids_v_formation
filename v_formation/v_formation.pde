@@ -17,8 +17,8 @@ Bird bird;
 Bird leadingBird;
 
 void setup() {
-  size(800, 800);
-  windowSize = 800; // make sure match to the size() call on previous line
+  size(400, 400);
+  windowSize = 400; // make sure match to the size() call on previous line
   partWindow = windowSize / 8;
 
   leadingBird = new Bird(0, partWindow * 2, partWindow * 2, color(0,0,255));
@@ -29,13 +29,12 @@ void setup() {
 void draw() {
   background(50);
   
-  leadingBird.updateAutoThrust();
-  leadingBird.generateRandomTurn();
+  //leadingBird.updateAutoThrust();
+  //leadingBird.generateRandomTurn();
   leadingBird.update();
   leadingBird.render();
 
-  //bird.pointAtLeadingBird(leadingBird);
-  bird.pointSameWayAsLeadingBird(leadingBird);
+  bird.pointAtTrailingSpot(leadingBird);
   bird.update();
   bird.render();
 }
@@ -102,4 +101,8 @@ float angleBetweenVectors(PVector v1, PVector v2) {
   float denom = v1.mag() * v2.mag();
   float angle = acos(dp/denom);
   return degrees(angle);
+}
+
+String printPVector(String label, PVector p1) {
+  return (label + ": [" + p1.x + "," + p1.y + "] ");
 }

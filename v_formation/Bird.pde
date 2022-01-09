@@ -25,7 +25,7 @@ class Bird {
     maxSpeed = 5;
     birdWidth = 15;
     birdColor = sColor;
-    rot = 90;
+    rot = -90;
     rotChange = 0;
     rotIncrement = 3;
     thrustOn = false;
@@ -58,7 +58,7 @@ class Bird {
     pushMatrix();
     translate(pos.x,pos.y);
     scale(proportion);
-    rotate(radians(rot));
+    rotate(radians(rot+90));
     fill(0);
     stroke(birdColor);
     beginShape();
@@ -79,6 +79,17 @@ class Bird {
       vertex(0, halfbirdHeight * 1.4);
       endShape(CLOSE);
     }
+    popMatrix();
+    
+    float rearRot = radians(rot + 135);
+    PVector trailingSpot = new PVector(cos(rearRot), sin(rearRot));
+    trailingSpot.mult(100.0);
+    pushMatrix();
+    translate(pos.x,pos.y);
+    beginShape();
+    vertex(0,0);
+    vertex(trailingSpot.x, trailingSpot.y);;
+    endShape(CLOSE);
     popMatrix();
   }
 
@@ -111,6 +122,15 @@ class Bird {
   float getRot() {
     return rot;
   }
+
+  PVector getTrailingSpot() {
+    float rearRot = radians(rot + 135);
+    PVector trailingSpot = new PVector(cos(rearRot), sin(rearRot));
+    trailingSpot.mult(100.0);
+    trailingSpot.add(pos);
+    return trailingSpot;
+  }
+
   // calculate if the leading bird is near enough to "see" and in front of this bird. Return a zero vector if not.
   // otherwise return a vector indicating a velocity change to track the leading bird.
   PVector calculateLeadingBirdVelocityAdjustment(Bird leadingBird) {
@@ -144,7 +164,8 @@ class Bird {
        
  */       // println("  Adjustment vector:", adjustment);
        rotChange = adjustmentAngle / 10.0;
-       println("AngleToLeadingBird:", angleToLeadingBird, 
+       println("rot:", rot,
+               " | AngleToLeadingBird:", angleToLeadingBird, 
                " | adjustmentAngle:", adjustmentAngle, 
                " | pointingDirection: [", pointingDirection.x, pointingDirection.y, "]");
     }
@@ -156,19 +177,53 @@ class Bird {
     rotChange = adjustment / 10.0;
   }
 
+  void pointAtTrailingSpot(Bird leadingBird) {
+    PVector trailingSpot = leadingBird.getTrailingSpot();
+    trailingSpot.sub(pos);
+    float distanceToLeadingBird = trailingSpot.mag();
+    //if (distanceToLeadingBird > leadingBirdRange) { // have to be close to it, first off
+    //  return;
+   // }
+    trailingSpot.normalize();
+    float rotRadians = radians(rot);
+    PVector pointingDirection = new PVector(cos(rotRadians), sin(rotRadians));
+    pointingDirection.normalize();
+    float angleToTrailingSpot = angleBetweenVectors(pointingDirection, trailingSpot);
+    PVector crossProduct = pointingDirection.cross(trailingSpot);
+    // calculate turn based on how large the angle is
+    float adjustmentAngle = angleToTrailingSpot  * crossProduct.z;
+    if (abs(adjustmentAngle) < 90) {
+      rotChange = adjustmentAngle / 10;
+    }
+    
+    println(printPVector("pointingDirection", pointingDirection),
+            printPVector("trailingSpot", trailingSpot),
+            "adjustmentAngle:", adjustmentAngle);
+
+    stroke(birdColor);
+    beginShape();
+    //vertex(leadingBirdVelocityAdjustment.x * lineLen, leadingBirdVelocityAdjustment.y * lineLen);
+    vertex(pos.x,pos.y);
+    PVector ts2 = leadingBird.getTrailingSpot();
+    vertex(ts2.x, ts2.y);
+    endShape(CLOSE);
+
+  }
+
   void pointAtLeadingBird(Bird leadingBird) {
     float lineLen = 10000;
     PVector leadingBirdVelocityAdjustment = calculateLeadingBirdVelocityAdjustment(leadingBird);
     //println("Leading bird direction:[" + leadingBirdDirection.x + "," + leadingBirdDirection.y + "]");
-    pushMatrix();
-    translate(pos.x,pos.y);
+    
     stroke(birdColor);
     beginShape();
-    vertex(0,0);
-    vertex(leadingBirdVelocityAdjustment.x * lineLen, leadingBirdVelocityAdjustment.y * lineLen);
+    //vertex(leadingBirdVelocityAdjustment.x * lineLen, leadingBirdVelocityAdjustment.y * lineLen);
+    PVector trailingSpot = leadingBird.getTrailingSpot();
+    vertex(pos.x,pos.y);
+    vertex(trailingSpot.x, trailingSpot.y);
     endShape(CLOSE);
-    popMatrix();
-    vel.add(leadingBirdVelocityAdjustment);
+
+    //vel.add(leadingBirdVelocityAdjustment);
   }
 
   void generateRandomTurn() {
