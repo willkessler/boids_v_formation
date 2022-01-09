@@ -7,7 +7,8 @@ class Bird {
   int birdId;
   float birdWidth;
   float rot, rotChange, rotIncrement;
-  float accelFactor;
+  float initialThrustStrength;
+  float currentThrustStrength;
   float mass = 1.0;
   float randomTurn;
   float turnDecay = 0.95;
@@ -29,9 +30,10 @@ class Bird {
     rotChange = 0;
     rotIncrement = 3;
     thrustOn = false;
-    accelFactor = 0.009;
+    initialThrustStrength = 0.009;
+    currentThrustStrength = initialThrustStrength;
     birdId = id;
-    friction = 0.995; 
+    friction = 0.990;
     randomTurn = 0;
     thrustTimer = 0;
   }
@@ -39,8 +41,8 @@ class Bird {
   void update() {
     
     if (thrustOn) {
-      accel.x = sin(radians(rot)) * accelFactor;
-      accel.y = -cos(radians(rot)) * accelFactor;
+      accel.x = cos(radians(rot)) * currentThrustStrength;
+      accel.y = sin(radians(rot)) * currentThrustStrength;
     }
     vel.add(accel);
     vel.mult(friction);
@@ -81,16 +83,22 @@ class Bird {
     }
     popMatrix();
     
+    /*
     float rearRot = radians(rot + 135);
     PVector trailingSpot = new PVector(cos(rearRot), sin(rearRot));
     trailingSpot.mult(100.0);
     pushMatrix();
     translate(pos.x,pos.y);
     beginShape();
-    vertex(0,0);
-    vertex(trailingSpot.x, trailingSpot.y);;
+    vertex(trailingSpot.x-10,trailingSpot.y-10);
+    vertex(trailingSpot.x+10,trailingSpot.y+10);
+    endShape(CLOSE);
+    beginShape();
+    vertex(trailingSpot.x-10,trailingSpot.y+10);
+    vertex(trailingSpot.x+10,trailingSpot.y-10);
     endShape(CLOSE);
     popMatrix();
+    */
   }
 
   void moveLinear(float xMove, float yMove) {
@@ -101,6 +109,10 @@ class Bird {
 
   void applyThrust() {
     thrustOn = true; 
+  }
+
+  void setThrustStrength(float thrustStrength) {
+    currentThrustStrength = thrustStrength;    
   }
 
   void cancelThrust() {
@@ -192,8 +204,8 @@ class Bird {
     PVector crossProduct = pointingDirection.cross(trailingSpot);
     // calculate turn based on how large the angle is
     float adjustmentAngle = angleToTrailingSpot  * crossProduct.z;
-    if (abs(adjustmentAngle) < 90) {
-      rotChange = adjustmentAngle / 10;
+    if (abs(adjustmentAngle) < 91) {
+      rotChange = adjustmentAngle / 2;
     }
     
     println(printPVector("pointingDirection", pointingDirection),
@@ -225,6 +237,22 @@ class Bird {
 
     //vel.add(leadingBirdVelocityAdjustment);
   }
+
+  void thrustOrAlignWithLeadingBird(Bird leadingBird) {
+    // if bird trailing spot is nearby, try to align your direction with the leading bird. If it isn't, thrust
+    // to the trailing spot
+    PVector distanceToTrailingSpotVec = leadingBird.getTrailingSpot();
+    distanceToTrailingSpotVec.sub(pos);
+    float distanceToTrailingSpot = distanceToTrailingSpotVec.mag();
+    float thrustStrength = distanceToTrailingSpot / 50;
+    if (distanceToTrailingSpot > 50) {
+      applyThrust();
+      setThrustStrength(thrustStrength);
+    } else {
+      cancelThrust();
+    }
+  }
+
 
   void generateRandomTurn() {
     if (!isTurning()) {

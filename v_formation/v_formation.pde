@@ -35,6 +35,7 @@ void draw() {
   leadingBird.render();
 
   bird.pointAtTrailingSpot(leadingBird);
+  bird.thrustOrAlignWithLeadingBird(leadingBird);
   bird.update();
   bird.render();
 }
@@ -54,16 +55,16 @@ void keyPressed() {
     bird.startTurning(1);
     break;
    case 'i':
-    leadingBird.moveLinear(0,-1);
+    leadingBird.moveLinear(0,-10);
     break;
    case 'j':
-    leadingBird.moveLinear(-1,0);
+    leadingBird.moveLinear(-10,0);
     break;
    case 'k':
-    leadingBird.moveLinear(0,1);
+    leadingBird.moveLinear(0,10);
     break;
    case 'l':
-    leadingBird.moveLinear(1,0);
+    leadingBird.moveLinear(10,0);
     break;
   }   
 }
