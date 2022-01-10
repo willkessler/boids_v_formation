@@ -17,8 +17,8 @@ Bird bird;
 Bird leadingBird;
 
 void setup() {
-  size(400, 400);
-  windowSize = 400; // make sure match to the size() call on previous line
+  size(800, 800);
+  windowSize = 800; // make sure match to the size() call on previous line
   partWindow = windowSize / 8;
 
   leadingBird = new Bird(0, partWindow * 2, partWindow * 2, color(0,0,255));
@@ -29,12 +29,12 @@ void setup() {
 void draw() {
   background(50);
   
-  //leadingBird.updateAutoThrust();
-  //leadingBird.generateRandomTurn();
+  leadingBird.updateAutoThrust();
+  leadingBird.generateRandomTurn();
   leadingBird.update();
   leadingBird.render();
+  leadingBird.showTrailingSpot(true);
 
-  bird.pointAtTrailingSpot(leadingBird);
   bird.thrustOrAlignWithLeadingBird(leadingBird);
   bird.update();
   bird.render();
