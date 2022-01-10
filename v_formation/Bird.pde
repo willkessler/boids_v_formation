@@ -12,7 +12,10 @@ class Bird {
   float mass = 1.0;
   float randomTurn;
   float turnDecay = 0.95;
-  float thrustDecay = 0.95;
+  int thrustDuration = 10;
+  int thrustPauseDuration = 60;
+  int thrustCounter = 0, thrustPauseCounter = 0;
+  
   int thrustTimer;
   float leadingBirdRange = windowSize; // can track you over entire screen right now
   float leadingBirdAngleTolerance = 120;
@@ -33,7 +36,7 @@ class Bird {
     initialThrustStrength = 0.009;
     currentThrustStrength = initialThrustStrength;
     birdId = id;
-    friction = 0.990;
+    friction = 0.98;
     randomTurn = 0;
     thrustTimer = 0;
   }
@@ -46,6 +49,7 @@ class Bird {
     }
     vel.add(accel);
     vel.mult(friction);
+    
     //if (birdId == 0) {
     //  println("speed:", vel.mag());
     //}
@@ -108,7 +112,28 @@ class Bird {
   }
 
   void applyThrust() {
-    thrustOn = true; 
+    if (!thrustOn && thrustCounter == 0 && thrustPauseCounter == 0) {
+      thrustOn = true;
+      thrustCounter = thrustDuration;
+      return;
+    }
+    
+    if (thrustCounter > 0) {
+      thrustCounter--;
+      if (thrustCounter == 0) {
+        thrustPauseCounter = thrustPauseDuration;
+        thrustOn = false;
+      }
+    }
+  
+    if (thrustPauseCounter > 0) {
+      thrustPauseCounter--;
+      if (thrustPauseCounter == 0) {
+        thrustOn = true;
+        thrustCounter = thrustDuration;
+      }
+    }
+
   }
 
   void setThrustStrength(float thrustStrength) {
@@ -117,6 +142,7 @@ class Bird {
 
   void cancelThrust() {
     thrustOn = false;
+    thrustCounter = 0;
   }
 
  void startTurning(float direction) {
@@ -244,8 +270,8 @@ class Bird {
     PVector distanceToTrailingSpotVec = leadingBird.getTrailingSpot();
     distanceToTrailingSpotVec.sub(pos);
     float distanceToTrailingSpot = distanceToTrailingSpotVec.mag();
-    float thrustStrength = distanceToTrailingSpot / 50;
-    if (distanceToTrailingSpot > 50) {
+    float thrustStrength = distanceToTrailingSpot / 400;
+    if (distanceToTrailingSpot > 1) {
       applyThrust();
       setThrustStrength(thrustStrength);
     } else {
