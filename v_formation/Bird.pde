@@ -168,6 +168,19 @@ class Bird {
   void showTrailingSpot(Boolean dts) {
     renderTrailingSpot = dts;    
   }
+
+  float getAngleToTrailingSpot(Bird leadingBird) {
+    PVector trailingSpot = leadingBird.getTrailingSpot();
+    PVector trailingSpotToThisBird = new PVector(trailingSpot.x, trailingSpot.y);
+    trailingSpotToThisBird.sub(pos);
+    trailingSpotToThisBird.normalize();
+    float rotRadians = radians(rot);
+    PVector pointingDirection = new PVector(cos(rotRadians), sin(rotRadians));
+    pointingDirection.normalize();
+    float angleToTrailingSpot = angleBetweenVectors(pointingDirection, trailingSpotToThisBird);
+
+    return angleToTrailingSpot;
+  }
   
   // calculate if the leading bird is near enough to "see" and in front of this bird. Return a zero vector if not.
   // otherwise return a vector indicating a velocity change to track the leading bird.
@@ -286,19 +299,23 @@ class Bird {
   void thrustOrAlignWithLeadingBird(Bird leadingBird) {
     // if bird trailing spot is nearby, try to align your direction with the leading bird. If it isn't, thrust
     // to the trailing spot
+    float angleToTrailingSpot = getAngleToTrailingSpot(leadingBird);
+    if (abs(angleToTrailingSpot) > 120) {
+      return; // must be able to see leading bird
+    }
     PVector distanceToTrailingSpotVec = leadingBird.getTrailingSpot();
     distanceToTrailingSpotVec.sub(pos);
     float distanceToTrailingSpot = distanceToTrailingSpotVec.mag();
-    // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
-    // the distance to the trailing spot target
-    float speedDiff = max(0, leadingBird.getVelocity() - getVelocity());
-    float thrustStrength = distanceToTrailingSpot / 400 + speedDiff;
     if (distanceToTrailingSpot < 20) {
       // if we're close to trailing spot, try to line up with leading bird direction
       matchLeadingBirdDirection(leadingBird);
     } else {
       pointAtTrailingSpot(leadingBird);
     }
+    // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
+    // the distance to the trailing spot target
+    float speedDiff = max(0, leadingBird.getVelocity() - getVelocity());
+    float thrustStrength = distanceToTrailingSpot / 400 + speedDiff;
     applyThrust();
     setThrustStrength(thrustStrength);
   }
@@ -311,7 +328,7 @@ class Bird {
       } 
     } else {
       randomTurn = rotChange * turnDecay;
-      if (Math.abs(randomTurn) < 0.01 || !thrustOn) {
+      if (Math.abs(randomTurn) < 0.05 || !thrustOn) {
         randomTurn = 0; // cancel turning if tapered off, or not thrusting
       }
     }
