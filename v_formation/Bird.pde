@@ -13,7 +13,7 @@ class Bird {
   float randomTurn;
   float turnDecay = 0.95;
   int thrustDuration = 10;
-  int thrustPauseDuration = 60;
+  int thrustPauseDuration = 30;
   int thrustCounter = 0, thrustPauseCounter = 0;
   Boolean renderTrailingSpot;
   
@@ -93,7 +93,7 @@ class Bird {
       stroke(birdColor);
       fill(birdColor);
       PVector trailingSpot = getTrailingSpot();
-      circle(trailingSpot.x, trailingSpot.y, 10);
+      ellipse(trailingSpot.x-10, trailingSpot.y-10,10, 10);
     }
   }
 
@@ -153,6 +153,10 @@ class Bird {
     return rot;
   }
 
+  float getVelocity() {
+    return vel.mag();
+  }
+  
   PVector getTrailingSpot() {
     float rearRot = radians(rot + 135);
     PVector trailingSpot = new PVector(cos(rearRot), sin(rearRot));
@@ -230,12 +234,15 @@ class Bird {
       rotChange = adjustmentAngle / 2;
     }
     
+    /*
     println(printPVector("pointingDirection", pointingDirection),
             printPVector("trailingSpot", trailingSpot),
             "adjustmentAngle:", adjustmentAngle);
+    */
 
-    stroke(birdColor);
+    // draw a line from bird to trailing spot
     /*
+    stroke(birdColor);
     beginShape();
     vertex(pos.x,pos.y);
     PVector ts2 = leadingBird.getTrailingSpot();
@@ -282,16 +289,18 @@ class Bird {
     PVector distanceToTrailingSpotVec = leadingBird.getTrailingSpot();
     distanceToTrailingSpotVec.sub(pos);
     float distanceToTrailingSpot = distanceToTrailingSpotVec.mag();
-    float thrustStrength = distanceToTrailingSpot / 400;
-    if (distanceToTrailingSpot > 10) {
-      pointAtTrailingSpot(leadingBird);
-      applyThrust();
-      setThrustStrength(thrustStrength);
-    } else {
-      cancelThrust();
+    // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
+    // the distance to the trailing spot target
+    float speedDiff = max(0, leadingBird.getVelocity() - getVelocity());
+    float thrustStrength = distanceToTrailingSpot / 400 + speedDiff;
+    if (distanceToTrailingSpot < 20) {
       // if we're close to trailing spot, try to line up with leading bird direction
       matchLeadingBirdDirection(leadingBird);
+    } else {
+      pointAtTrailingSpot(leadingBird);
     }
+    applyThrust();
+    setThrustStrength(thrustStrength);
   }
 
 
