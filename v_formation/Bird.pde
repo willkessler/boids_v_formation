@@ -37,7 +37,7 @@ class Bird {
     initialThrustStrength = 0.009;
     currentThrustStrength = initialThrustStrength;
     birdId = id;
-    friction = 0.98;
+    friction = 0.985;
     randomTurn = 0;
     thrustTimer = 0;
     renderTrailingSpot = false;
@@ -158,8 +158,11 @@ class Bird {
   }
   
   PVector getTrailingSpot() {
-    float rearRot = radians(rot + 135);
-    PVector trailingSpot = new PVector(cos(rearRot), sin(rearRot));
+    PVector trailingSpot = new PVector(vel.x,vel.y);
+    trailingSpot.normalize();
+    trailingSpot.rotate(radians(135));
+//    float rearRot = radians(rot + 135);
+//    PVector trailingSpot = new PVector(cos(rearRot), sin(rearRot));
     trailingSpot.mult(100.0);
     trailingSpot.add(pos);
     return trailingSpot;
@@ -300,16 +303,13 @@ class Bird {
     // if bird trailing spot is nearby, try to align your direction with the leading bird. If it isn't, thrust
     // to the trailing spot
     float angleToTrailingSpot = getAngleToTrailingSpot(leadingBird);
-    if (abs(angleToTrailingSpot) > 120) {
-      return; // must be able to see leading bird
-    }
     PVector distanceToTrailingSpotVec = leadingBird.getTrailingSpot();
     distanceToTrailingSpotVec.sub(pos);
     float distanceToTrailingSpot = distanceToTrailingSpotVec.mag();
     if (distanceToTrailingSpot < 20) {
       // if we're close to trailing spot, try to line up with leading bird direction
       matchLeadingBirdDirection(leadingBird);
-    } else {
+    } else if (abs(angleToTrailingSpot) < 120) {
       pointAtTrailingSpot(leadingBird);
     }
     // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
@@ -323,7 +323,7 @@ class Bird {
 
   void generateRandomTurn() {
     if (!isTurning()) {
-      if (randomTurn == 0 && !thrustOn) {
+      if (randomTurn == 0 && thrustOn) {
         randomTurn = (float) Math.random() * 3 - 1.5;
       } 
     } else {
@@ -343,9 +343,11 @@ class Bird {
       }
     } else {
       float shouldStartThrust = (float) Math.random();
-      if (shouldStartThrust > 0.95) {
-        thrustTimer = (int) (Math.random() * 250);
+      if (shouldStartThrust > 0.985) {
+        thrustTimer = (int) (Math.random() * 200);
         applyThrust();  
+        float randomStrength = (float) Math.random() * 0.05;
+        setThrustStrength(randomStrength);
       }
     }
   }
