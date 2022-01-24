@@ -35,9 +35,9 @@ void draw() {
   leadingBird.render();
   leadingBird.showTrailingSpot(true);
 
-  //bird.thrustOrAlignWithLeadingBird(leadingBird);
-  //bird.update();
-  //bird.render();
+  bird.thrustOrAlignWithLeadingBird(leadingBird);
+  bird.update();
+  bird.render();
 }
 
 /* ------------------------------------------------------------------------------------------------------- */
