@@ -17,8 +17,8 @@ Bird bird;
 Bird leadingBird;
 
 void setup() {
-  size(800, 800);
-  windowSize = 800; // make sure match to the size() call on previous line
+  size(1200, 1200);
+  windowSize = 1200; // make sure match to the size() call on previous line
   partWindow = windowSize / 8;
 
   leadingBird = new Bird(0, partWindow * 2, partWindow * 2, color(0,0,255));
