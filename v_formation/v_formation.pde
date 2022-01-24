@@ -17,27 +17,27 @@ Bird bird;
 Bird leadingBird;
 
 void setup() {
-  size(1200, 1200);
-  windowSize = 1200; // make sure match to the size() call on previous line
-  partWindow = windowSize / 8;
+  size(1000, 1000);
+  windowSize = 1000; // make sure match to the size() call on previous line
+  partWindow = windowSize / 2;
 
-  leadingBird = new Bird(0, partWindow * 2, partWindow * 2, color(0,0,255));
-  bird = new Bird(1, partWindow, partWindow, color(0,255,0));
+  leadingBird = new Bird(0, partWindow, partWindow, color(0,0,255));
+  bird = new Bird(1, partWindow, partWindow * 1.75, color(0,255,0));
 
 }
 
 void draw() {
   background(50);
   
-  leadingBird.updateAutoThrust();
+  //leadingBird.updateAutoThrust();
   leadingBird.generateRandomTurn();
   leadingBird.update();
   leadingBird.render();
   leadingBird.showTrailingSpot(true);
 
-  bird.thrustOrAlignWithLeadingBird(leadingBird);
-  bird.update();
-  bird.render();
+  //bird.thrustOrAlignWithLeadingBird(leadingBird);
+  //bird.update();
+  //bird.render();
 }
 
 /* ------------------------------------------------------------------------------------------------------- */

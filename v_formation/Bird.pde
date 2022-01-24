@@ -55,6 +55,7 @@ class Bird {
     //if (birdId == 0) {
     //  println("speed:", vel.mag());
     //}
+    println("accel:",accel.x,accel.y, "vel:", vel.x, vel.y);
     vel.limit(maxSpeed);
     pos.add(vel);
     rot = rot + rotChange;
@@ -93,7 +94,20 @@ class Bird {
       stroke(birdColor);
       fill(birdColor);
       PVector trailingSpot = getTrailingSpot();
-      ellipse(trailingSpot.x-10, trailingSpot.y-10,10, 10);
+      ellipse(trailingSpot.x, trailingSpot.y,10, 10);
+      PVector parallelLineAtTrailingSpot = new PVector(1,0);
+      parallelLineAtTrailingSpot.rotate(radians(rot));
+      parallelLineAtTrailingSpot.mult(50);
+
+      pushMatrix();
+      translate(trailingSpot.x, trailingSpot.y);
+      fill(0);
+      stroke(birdColor);
+      beginShape();
+      vertex(0,0);
+      vertex(parallelLineAtTrailingSpot.x, parallelLineAtTrailingSpot.y);
+      endShape(CLOSE);
+      popMatrix();
     }
   }
 
@@ -158,11 +172,9 @@ class Bird {
   }
   
   PVector getTrailingSpot() {
-    PVector trailingSpot = new PVector(vel.x,vel.y);
+    PVector trailingSpot = new PVector(1,0);
     trailingSpot.normalize();
-    trailingSpot.rotate(radians(135));
-//    float rearRot = radians(rot + 135);
-//    PVector trailingSpot = new PVector(cos(rearRot), sin(rearRot));
+    trailingSpot.rotate(radians(45));
     trailingSpot.mult(100.0);
     trailingSpot.add(pos);
     return trailingSpot;
@@ -323,12 +335,12 @@ class Bird {
 
   void generateRandomTurn() {
     if (!isTurning()) {
-      if (randomTurn == 0 && thrustOn) {
+      if (randomTurn == 0) {
         randomTurn = (float) Math.random() * 3 - 1.5;
       } 
     } else {
       randomTurn = rotChange * turnDecay;
-      if (Math.abs(randomTurn) < 0.05 || !thrustOn) {
+      if (Math.abs(randomTurn) < 0.05) {
         randomTurn = 0; // cancel turning if tapered off, or not thrusting
       }
     }
