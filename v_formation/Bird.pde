@@ -322,18 +322,24 @@ class Bird {
     // Compute amount to bank. Banking will apply a "thrust" at 90 degrees to the direction of the bird.
     // To compute which way to bank, take the cross prod of a vector from the point to bank towards with
     // the bird's direction vector. If positive, bank right, otherwise bank left.
+    float distanceToTrailingSpot = getDistanceToPos(leadingBird.getTrailingSpot(), pos);
     PVector leadingBirdToThisBird = leadingBird.getTrailingSpot();
-    leadingBirdToThisBird.sub(pos);
+    leadingBirdToThisBird.sub(pos);    
     leadingBirdToThisBird.normalize();
     float rotRadians = radians(rot);
     PVector pointingDirection = new PVector(cos(rotRadians), sin(rotRadians));
     pointingDirection.normalize();
     PVector crossProduct = pointingDirection.cross(leadingBirdToThisBird).normalize();
+    // Compute bank thrust relative to distance to trailing spot. at 90 to the pointing vector in the direction of the trailing spot.
+    float bankFactor = distanceToTrailingSpot / 10;
     if (crossProduct.z < 0) {
-      println("Go left, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
+      // println("Go left, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
+      pointingDirection.rotate(radians(-90)).mult(bankFactor);
     } else {
-      println("Go right, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
+      pointingDirection.rotate(radians(90)).mult(bankFactor);
+      //println("Go right, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
     }
+    println("Banking vector:[", pointingDirection.x, pointingDirection.y, "]");
   }
 
 
