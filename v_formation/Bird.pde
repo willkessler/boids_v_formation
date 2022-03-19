@@ -318,18 +318,19 @@ class Bird {
     PVector distanceToTrailingSpotVec = leadingBird.getTrailingSpot();
     distanceToTrailingSpotVec.sub(pos);
     float distanceToTrailingSpot = distanceToTrailingSpotVec.mag();
-    if (distanceToTrailingSpot < 20) {
+    if (distanceToTrailingSpot < 50) {
       // if we're close to trailing spot, try to line up with leading bird direction
       matchLeadingBirdDirection(leadingBird);
-    } else if (abs(angleToTrailingSpot) < 120) {
+    //    } else if (abs(angleToTrailingSpot) < 120) {
+    } else {  
       pointAtTrailingSpot(leadingBird);
+      // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
+      // the distance to the trailing spot target
+      float speedDiff = max(0, leadingBird.getVelocity() - getVelocity());
+      float thrustStrength = distanceToTrailingSpot / 400 + speedDiff;
+      applyThrust();
+      setThrustStrength(thrustStrength);
     }
-    // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
-    // the distance to the trailing spot target
-    float speedDiff = max(0, leadingBird.getVelocity() - getVelocity());
-    float thrustStrength = distanceToTrailingSpot / 400 + speedDiff;
-    applyThrust();
-    setThrustStrength(thrustStrength);
   }
 
 
