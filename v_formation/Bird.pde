@@ -55,7 +55,7 @@ class Bird {
     //if (birdId == 0) {
     //  println("speed:", vel.mag());
     //}
-    println("accel:",accel.x,accel.y, "vel:", vel.x, vel.y);
+    //println("accel:",accel.x,accel.y, "vel:", vel.x, vel.y);
     vel.limit(maxSpeed);
     pos.add(vel);
     rot = rot + rotChange;
@@ -178,6 +178,13 @@ class Bird {
     trailingSpot.mult(100.0);
     trailingSpot.add(pos);
     return trailingSpot;
+  }
+
+  float getDistanceToPos(PVector pos1, PVector pos2) {
+    PVector distanceVec = new PVector(pos2.x, pos2.y);
+    distanceVec.sub(pos1);
+    float distance = distanceVec.mag();
+    return (distance);
   }
 
   void showTrailingSpot(Boolean dts) {
@@ -311,17 +318,36 @@ class Bird {
     rotChange = adjustmentAngle / 10.0;
   }
 
+  void bankBird(Bird leadingBird) {
+    // Compute amount to bank. Banking will apply a "thrust" at 90 degrees to the direction of the bird.
+    // To compute which way to bank, take the cross prod of a vector from the point to bank towards with
+    // the bird's direction vector. If positive, bank right, otherwise bank left.
+    PVector leadingBirdToThisBird = leadingBird.getTrailingSpot();
+    leadingBirdToThisBird.sub(pos);
+    leadingBirdToThisBird.normalize();
+    float rotRadians = radians(rot);
+    PVector pointingDirection = new PVector(cos(rotRadians), sin(rotRadians));
+    pointingDirection.normalize();
+    PVector crossProduct = pointingDirection.cross(leadingBirdToThisBird).normalize();
+    if (crossProduct.z < 0) {
+      println("Go left, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
+    } else {
+      println("Go right, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
+    }
+  }
+
+
   void thrustOrAlignWithLeadingBird(Bird leadingBird) {
     // if bird trailing spot is nearby, try to align your direction with the leading bird. If it isn't, thrust
     // to the trailing spot
     float angleToTrailingSpot = getAngleToTrailingSpot(leadingBird);
-    PVector distanceToTrailingSpotVec = leadingBird.getTrailingSpot();
-    distanceToTrailingSpotVec.sub(pos);
-    float distanceToTrailingSpot = distanceToTrailingSpotVec.mag();
-    if (distanceToTrailingSpot < 50) {
+    float distanceToTrailingSpot = getDistanceToPos(leadingBird.getTrailingSpot(), pos);
+    if (distanceToTrailingSpot < 100) {
       // if we're close to trailing spot, try to line up with leading bird direction
       matchLeadingBirdDirection(leadingBird);
-    //    } else if (abs(angleToTrailingSpot) < 120) {
+//      if (distanceToTrailingSpot > 10) {
+//        bankBird(leadingBird);
+//      }
     } else {  
       pointAtTrailingSpot(leadingBird);
       // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
@@ -331,6 +357,9 @@ class Bird {
       applyThrust();
       setThrustStrength(thrustStrength);
     }
+
+    bankBird(leadingBird);
+
   }
 
 
