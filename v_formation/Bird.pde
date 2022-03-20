@@ -13,7 +13,7 @@ class Bird {
   float mass = 1.0;
   float randomTurn;
   float turnDecay = 0.95;
-  float bankDecay = 0.95;
+  float bankDecay = 0.9;
   int thrustDuration = 10;
   int thrustPauseDuration = 30;
   int thrustCounter = 0, thrustPauseCounter = 0;
@@ -335,7 +335,7 @@ class Bird {
     pointingDirection.normalize();
     PVector crossProduct = pointingDirection.cross(leadingBirdToThisBird).normalize();
     // Compute bank thrust relative to distance to trailing spot. at 90 to the pointing vector in the direction of the trailing spot.
-    float bankFactor = distanceToTrailingSpot / 1000;
+    float bankFactor = distanceToTrailingSpot / 10000;
     if (crossProduct.z < 0) {
       // println("Go left, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
       pointingDirection.rotate(radians(-90)).mult(bankFactor);
@@ -344,7 +344,7 @@ class Bird {
       //println("Go right, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
     }
     println("Bank vector:[", pointingDirection.x, pointingDirection.y, "]");
-    bank.set(pointingDirection.x, pointingDirection.y);
+    bank.add(pointingDirection.x, pointingDirection.y);
   }
 
 
@@ -356,9 +356,7 @@ class Bird {
     if (distanceToTrailingSpot < 100) {
       // if we're close to trailing spot, try to line up with leading bird direction
       matchLeadingBirdDirection(leadingBird);
-      if (distanceToTrailingSpot < 20) {
-        bankBird(leadingBird);
-      }
+      bankBird(leadingBird);
     } else {  
       pointAtTrailingSpot(leadingBird);
       // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
