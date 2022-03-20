@@ -1,6 +1,7 @@
 class Bird {
   
   PVector pos, vel, accel;
+  PVector bank;
   float thrustConstant = 0.2;
   float maxSpeed, friction;
   color birdColor;
@@ -12,6 +13,7 @@ class Bird {
   float mass = 1.0;
   float randomTurn;
   float turnDecay = 0.95;
+  float bankDecay = 0.95;
   int thrustDuration = 10;
   int thrustPauseDuration = 30;
   int thrustCounter = 0, thrustPauseCounter = 0;
@@ -27,6 +29,7 @@ class Bird {
     accel = new PVector(0,0);
     vel = new PVector(0,0);
     pos = new PVector(x,y);
+    bank = new PVector(0,0);
     maxSpeed = 5;
     birdWidth = 15;
     birdColor = sColor;
@@ -50,6 +53,7 @@ class Bird {
       accel.y = sin(radians(rot)) * currentThrustStrength;
     }
     vel.add(accel);
+    vel.add(bank);
     vel.mult(friction);
     
     //if (birdId == 0) {
@@ -331,7 +335,7 @@ class Bird {
     pointingDirection.normalize();
     PVector crossProduct = pointingDirection.cross(leadingBirdToThisBird).normalize();
     // Compute bank thrust relative to distance to trailing spot. at 90 to the pointing vector in the direction of the trailing spot.
-    float bankFactor = distanceToTrailingSpot / 10;
+    float bankFactor = distanceToTrailingSpot / 1000;
     if (crossProduct.z < 0) {
       // println("Go left, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
       pointingDirection.rotate(radians(-90)).mult(bankFactor);
@@ -339,7 +343,8 @@ class Bird {
       pointingDirection.rotate(radians(90)).mult(bankFactor);
       //println("Go right, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
     }
-    println("Banking vector:[", pointingDirection.x, pointingDirection.y, "]");
+    println("Bank vector:[", pointingDirection.x, pointingDirection.y, "]");
+    bank.set(pointingDirection.x, pointingDirection.y);
   }
 
 
@@ -351,9 +356,9 @@ class Bird {
     if (distanceToTrailingSpot < 100) {
       // if we're close to trailing spot, try to line up with leading bird direction
       matchLeadingBirdDirection(leadingBird);
-//      if (distanceToTrailingSpot > 10) {
-//        bankBird(leadingBird);
-//      }
+      if (distanceToTrailingSpot < 20) {
+        bankBird(leadingBird);
+      }
     } else {  
       pointAtTrailingSpot(leadingBird);
       // compute thrust strength by merging together the diff btwn the lead bird's speed and this bird's speed with
@@ -364,8 +369,8 @@ class Bird {
       setThrustStrength(thrustStrength);
     }
 
-    bankBird(leadingBird);
-
+    bank.x *= bankDecay;
+    bank.y *= bankDecay;
   }
 
 
