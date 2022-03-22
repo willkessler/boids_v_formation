@@ -2,6 +2,7 @@ class Bird {
   
   PVector pos, vel, accel;
   PVector thrustVector;
+  PVector headWind;
   float thrustConstant = 0.2;
   float maxSpeed, friction;
   color birdColor;
@@ -32,6 +33,7 @@ class Bird {
     vel = new PVector(0,0);
     pos = new PVector(x,y);
     thrustVector = new PVector(0,0);
+    headWind = new PVector(0,0); // always opposite current direction of bird
     maxSpeed = 5;
     birdWidth = 15;
     birdColor = sColor;
@@ -65,6 +67,11 @@ class Bird {
     if (thrustOn[LATERALTHRUST]) {
       vel.add(thrustVector);
     }
+
+    // apply headWind
+    if (birdId > 0) {
+      vel.add(calculateRandomHeadwind());
+    }
     
     vel.mult(friction);
     
@@ -90,7 +97,7 @@ class Bird {
     beginShape();
     if (birdId > 0) {
       bankingFactor = 1.0 - (getThrustVector().mag() * 2);
-      println("bankingFactor:", bankingFactor);
+      //println("bankingFactor:", bankingFactor);
     }
     vertex(-halfbirdWidth * bankingFactor,  halfbirdHeight);
     vertex(0,  -halfbirdHeight);
@@ -272,6 +279,14 @@ class Bird {
                " | pointingDirection: [", pointingDirection.x, pointingDirection.y, "]");
     }
     return adjustment;
+  }
+
+  PVector calculateRandomHeadwind() {
+    float rotRadians = radians(rot);
+    PVector windVec = new PVector(cos(rotRadians), sin(rotRadians));
+    float randomWind = (float) Math.max(0,Math.random() - 0.5) / 100;
+    windVec.normalize().mult(randomWind).rotate(radians(180));
+    return windVec;
   }
 
   void pointSameWayAsLeadingBird(Bird leadingBird) {
