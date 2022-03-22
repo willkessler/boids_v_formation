@@ -1,7 +1,7 @@
 class Bird {
   
   PVector pos, vel, accel;
-  PVector bank;
+  PVector thrustVector;
   float thrustConstant = 0.2;
   float maxSpeed, friction;
   color birdColor;
@@ -9,51 +9,63 @@ class Bird {
   float birdWidth;
   float rot, rotChange, rotIncrement;
   float initialThrustStrength;
-  float currentThrustStrength;
+  float[] currentThrustStrength = new float[2];
   float mass = 1.0;
   float randomTurn;
   float turnDecay = 0.95;
   float bankDecay = 0.9;
   int thrustDuration = 10;
   int thrustPauseDuration = 30;
-  int thrustCounter = 0, thrustPauseCounter = 0;
+  int[] thrustCounter = new int[2];
+  int[] thrustPauseCounter = new int[2];
+  boolean[] thrustOn = new boolean[2];
+
+  int[] thrustTimer = new int[2];
   Boolean renderTrailingSpot;
   
-  int thrustTimer;
   float leadingBirdRange = windowSize; // can track you over entire screen right now
   float leadingBirdAngleTolerance = 360;
   float birdSmartFactor = 1;
-  boolean thrustOn;
 
   Bird(int id, float x, float y, color sColor) {
     accel = new PVector(0,0);
     vel = new PVector(0,0);
     pos = new PVector(x,y);
-    bank = new PVector(0,0);
+    thrustVector = new PVector(0,0);
     maxSpeed = 5;
     birdWidth = 15;
     birdColor = sColor;
     rot = -90;
     rotChange = 0;
     rotIncrement = 3;
-    thrustOn = false;
+    thrustOn[FORWARDTHRUST] = false;
+    thrustOn[LATERALTHRUST] = false;
+
     initialThrustStrength = 0.009;
-    currentThrustStrength = initialThrustStrength;
+    currentThrustStrength[FORWARDTHRUST] = initialThrustStrength;
+    currentThrustStrength[LATERALTHRUST] = initialThrustStrength;
     birdId = id;
     friction = 0.985;
     randomTurn = 0;
-    thrustTimer = 0;
+    thrustTimer[FORWARDTHRUST] = 0;
+    thrustTimer[LATERALTHRUST] = 0;
     renderTrailingSpot = false;
   }
   
   void update() {
     
-    if (thrustOn) {
-      accel.x = cos(radians(rot)) * currentThrustStrength;
-      accel.y = sin(radians(rot)) * currentThrustStrength;
+    // set forward acceleration and add to the velocity
+    if (thrustOn[FORWARDTHRUST]) {
+      accel.x = cos(radians(rot)) * currentThrustStrength[FORWARDTHRUST];
+      accel.y = sin(radians(rot)) * currentThrustStrength[FORWARDTHRUST];
     }
     vel.add(accel);
-    vel.add(bank);
+
+    // set lateral accel/decel (banking) and add to the velocity as well
+    if (thrustOn[LATERALTHRUST]) {
+      vel.add(thrustVector);
+    }
+    
     vel.mult(friction);
     
     //if (birdId == 0) {
@@ -68,6 +80,7 @@ class Bird {
   }
   
  void drawBird(PVector pos, float rot, float proportion, color birdColor, boolean drawThrust) {
+    float bankingFactor = 1.0;
     pushMatrix();
     translate(pos.x,pos.y);
     scale(proportion);
@@ -75,9 +88,13 @@ class Bird {
     fill(0);
     stroke(birdColor);
     beginShape();
-    vertex(-halfbirdWidth,  halfbirdHeight);
+    if (birdId > 0) {
+      bankingFactor = 1.0 - (getThrustVector().mag() * 2);
+      println("bankingFactor:", bankingFactor);
+    }
+    vertex(-halfbirdWidth * bankingFactor,  halfbirdHeight);
     vertex(0,  -halfbirdHeight);
-    vertex(halfbirdWidth,  halfbirdHeight);
+    vertex(halfbirdWidth * bankingFactor,  halfbirdHeight);
     vertex(0, halfbirdHeight / 2);
     endShape(CLOSE);
     if (drawThrust) {
@@ -121,38 +138,46 @@ class Bird {
     pos.y += yMove * scalar;
   }
 
-  void applyThrust() {
-    if (!thrustOn && thrustCounter == 0 && thrustPauseCounter == 0) {
-      thrustOn = true;
-      thrustCounter = thrustDuration;
+  void applyThrust(int whichThrust) {
+    if (!thrustOn[whichThrust] && thrustCounter[whichThrust] == 0 && thrustPauseCounter[whichThrust] == 0) {
+      thrustOn[whichThrust] = true;
+      thrustCounter[whichThrust] = thrustDuration;
       return;
     }
     
-    if (thrustCounter > 0) {
-      thrustCounter--;
-      if (thrustCounter == 0) {
-        thrustPauseCounter = thrustPauseDuration;
-        thrustOn = false;
+    if (thrustCounter[whichThrust] > 0) {
+      thrustCounter[whichThrust]--;
+      if (thrustCounter[whichThrust] == 0) {
+        thrustPauseCounter[whichThrust] = thrustPauseDuration;
+        thrustOn[whichThrust] = false;
       }
     }
   
-    if (thrustPauseCounter > 0) {
-      thrustPauseCounter--;
-      if (thrustPauseCounter == 0) {
-        thrustOn = true;
-        thrustCounter = thrustDuration;
+    if (thrustPauseCounter[whichThrust] > 0) {
+      thrustPauseCounter[whichThrust]--;
+      if (thrustPauseCounter[whichThrust] == 0) {
+        thrustOn[whichThrust] = true;
+        thrustCounter[whichThrust] = thrustDuration;
       }
     }
 
   }
 
-  void setThrustStrength(float thrustStrength) {
-    currentThrustStrength = thrustStrength;    
+  void setThrustStrength(float thrustStrength, int whichThrust) {
+    currentThrustStrength[whichThrust] = thrustStrength;    
   }
 
-  void cancelThrust() {
-    thrustOn = false;
-    thrustCounter = 0;
+  PVector getThrustVector() {
+    return new PVector(thrustVector.x, thrustVector.y);
+  }
+
+  void setThrustVector(PVector tv) {
+    thrustVector.set(tv.x,tv.y);
+  }
+
+  void cancelThrust(int whichThrust) {
+    thrustOn[whichThrust] = false;
+    thrustCounter[whichThrust] = 0;
   }
 
  void startTurning(float direction) {
@@ -335,7 +360,7 @@ class Bird {
     pointingDirection.normalize();
     PVector crossProduct = pointingDirection.cross(leadingBirdToThisBird).normalize();
     // Compute bank thrust relative to distance to trailing spot. at 90 to the pointing vector in the direction of the trailing spot.
-    float bankFactor = distanceToTrailingSpot / 10000;
+    float bankFactor = distanceToTrailingSpot / 1000;
     if (crossProduct.z < 0) {
       // println("Go left, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
       pointingDirection.rotate(radians(-90)).mult(bankFactor);
@@ -343,8 +368,10 @@ class Bird {
       pointingDirection.rotate(radians(90)).mult(bankFactor);
       //println("Go right, pd:[", pointingDirection.x, pointingDirection.y, "], lb:[", leadingBirdToThisBird.x, leadingBirdToThisBird.y, "], crossproduct.z", crossProduct.z);
     }
-    println("Bank vector:[", pointingDirection.x, pointingDirection.y, "]");
-    bank.add(pointingDirection.x, pointingDirection.y);
+    //println("Bank vector:[", pointingDirection.x, pointingDirection.y, "]");
+    applyThrust(LATERALTHRUST);
+    setThrustStrength(bankFactor, LATERALTHRUST);
+    setThrustVector(pointingDirection);
   }
 
 
@@ -363,12 +390,10 @@ class Bird {
       // the distance to the trailing spot target
       float speedDiff = max(0, leadingBird.getVelocity() - getVelocity());
       float thrustStrength = distanceToTrailingSpot / 400 + speedDiff;
-      applyThrust();
-      setThrustStrength(thrustStrength);
+      applyThrust(FORWARDTHRUST);
+      setThrustStrength(thrustStrength, FORWARDTHRUST);
     }
 
-    bank.x *= bankDecay;
-    bank.y *= bankDecay;
   }
 
 
@@ -387,23 +412,23 @@ class Bird {
   }
 
   void updateAutoThrust() {
-    if (thrustOn) {
-      thrustTimer--;
-      if (thrustTimer == 0) {
-        cancelThrust();
+    if (thrustOn[FORWARDTHRUST]) {
+      thrustTimer[FORWARDTHRUST]--;
+      if (thrustTimer[FORWARDTHRUST] == 0) {
+        cancelThrust(FORWARDTHRUST);
       }
     } else {
       float shouldStartThrust = (float) Math.random();
       if (shouldStartThrust > 0.985) {
-        thrustTimer = (int) (Math.random() * 200);
-        applyThrust();  
+        thrustTimer[FORWARDTHRUST] = (int) (Math.random() * 200);
+        applyThrust(FORWARDTHRUST);  
         float randomStrength = (float) Math.random() * 0.05;
-        setThrustStrength(randomStrength);
+        setThrustStrength(randomStrength, FORWARDTHRUST);
       }
     }
   }
 
   void render() {
-    drawBird(pos, rot, 1.0, birdColor, thrustOn);
+    drawBird(pos, rot, 1.0, birdColor, thrustOn[FORWARDTHRUST] );
    }
 }

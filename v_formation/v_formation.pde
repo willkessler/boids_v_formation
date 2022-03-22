@@ -15,6 +15,9 @@ float halfbirdWidth = birdWidth / 2;
 int numBirds = 1;
 Bird bird;
 Bird leadingBird;
+int FORWARDTHRUST = 0;
+int LATERALTHRUST = 1;
+
 
 void setup() {
   size(1000, 1000);
@@ -46,7 +49,7 @@ void keyPressed() {
   switch (key) {
  
    case 's':
-    bird.applyThrust();
+    bird.applyThrust(FORWARDTHRUST);
     break;
    case 'a':
     bird.startTurning(-1);
@@ -66,13 +69,15 @@ void keyPressed() {
    case 'l':
     leadingBird.moveLinear(10,0);
     break;
-  }   
+  }
+  bird.cancelThrust(FORWARDTHRUST);
+  bird.cancelThrust(LATERALTHRUST);
 }
 
 void keyReleased() {
  switch (key) {
    case 's':
-    bird.cancelThrust();
+    bird.cancelThrust(FORWARDTHRUST);
     break;
    case 'a':
    case 'd':
